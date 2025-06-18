@@ -160,3 +160,64 @@ cython_debug/
 #.idea/
 
 .DS_Store
+
+# Viva Sergipe - Arquivos específicos do projeto
+# Arquivos temporários do sistema
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Logs do jogo
+game_logs/
+*.log
+
+# Arquivos de cache do MediaPipe
+mediapipe_cache/
+
+# Arquivos de dados temporários
+temp_data/
+*.npy
+*.pkl
+
+# Arquivos de configuração local
+local_config.json
+user_config.json
+
+# Arquivos de backup
+*.bak
+*.backup
+
+# Arquivos de release gerados
+release/
+dist/
+*.exe
+*.msi
+
+# Arquivos de teste temporários
+test_output/
+test_results/
+
+# Arquivos de modelo treinado (grandes)
+*.h5
+*.pth
+*.onnx
+
+# Arquivos de áudio temporários
+temp_audio/
+*.wav
+*.mp3.tmp
+
+# Arquivos de vídeo temporários
+temp_video/
+*.mp4.tmp
+*.avi.tmp
+
+# Snapshots do sistema (exceto os importantes)
+snapshots/temp/
+snapshots/backup/
+
+# Arquivos de debug
+debug/
+*.debug

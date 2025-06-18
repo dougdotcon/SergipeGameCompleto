@@ -54,7 +54,7 @@ def check_dependencies():
     
     if missing_modules:
         print(f"\n⚠️ Módulos faltando: {', '.join(missing_modules)}")
-        print("💡 Execute: python fix_opencv.py")
+        print("💡 Execute: python scripts/fix_opencv.py")
         return False
     
     print("✅ Todas as dependências estão instaladas")
@@ -75,7 +75,7 @@ def start_game():
     except Exception as e:
         print(f"\n❌ Erro ao iniciar o jogo: {e}")
         print("\n💡 Soluções:")
-        print("1. Execute: python fix_opencv.py")
+        print("1. Execute: python scripts/fix_opencv.py")
         print("2. Verifique se a câmera está conectada")
         print("3. Feche outros programas que usam a câmera")
         return False
@@ -94,7 +94,7 @@ def main():
     
     # Verificar dependências
     if not check_dependencies():
-        print("\n💡 Execute primeiro: python fix_opencv.py")
+        print("\n💡 Execute primeiro: python scripts/fix_opencv.py")
         input("\nPressione Enter para sair...")
         return
     

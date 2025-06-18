@@ -21,9 +21,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Verificar se o arquivo do jogo existe
-if not exist "sergipe_game.py" (
-    echo ERRO: Arquivo sergipe_game.py nao encontrado!
+REM Verificar se o arquivo principal existe
+if not exist "main.py" (
+    echo ERRO: Arquivo main.py nao encontrado!
     echo Certifique-se de estar no diretorio correto do jogo.
     echo.
     pause
@@ -33,13 +33,8 @@ if not exist "sergipe_game.py" (
 echo Iniciando o jogo...
 echo.
 
-REM Tentar executar o script de inicialização primeiro
-if exist "start_game.py" (
-    python start_game.py
-) else (
-    REM Fallback para execução direta
-    python sergipe_game.py
-)
+REM Executar o arquivo principal
+python main.py
 
 REM Verificar se houve erro
 if errorlevel 1 (
@@ -49,13 +44,13 @@ if errorlevel 1 (
     echo ========================================
     echo.
     echo Possiveis solucoes:
-    echo 1. Execute: python fix_opencv.py
+    echo 1. Execute: python scripts/fix_opencv.py
     echo 2. Verifique se a camera esta conectada
     echo 3. Feche outros programas que usam a camera
     echo 4. Reinstale as dependencias
     echo.
     echo Para corrigir dependencias, execute:
-    echo python fix_opencv.py
+    echo python scripts/fix_opencv.py
     echo.
 )
 
