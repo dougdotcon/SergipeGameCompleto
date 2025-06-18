@@ -15,18 +15,27 @@ from pathlib import Path
 
 # Importar módulos do projeto
 try:
-    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from sergipe_utils import load_sergipe_contour, create_body_mask
+    from utils import process_frame, initialize_pose_model
     from config_manager import ConfigManager
     from game_modes import GameModeManager
     from performance_optimizer import PerformanceOptimizer
-    from . import get_asset_path, get_sound_path
-except ImportError:
-    # Fallback para imports diretos se necessário
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
-    from config_manager import ConfigManager
-    from game_modes import GameModeManager
-    from performance_optimizer import PerformanceOptimizer
+    
+    # Adicionar raiz do projeto ao path para imports
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+        
+    # Funções para caminhos de assets
+    def get_asset_path(relative_path):
+        return os.path.join(project_root, relative_path)
+    
+    def get_sound_path(relative_path):
+        return os.path.join(project_root, relative_path)
+        
+except ImportError as e:
+    print(f"Erro de import: {e}")
+    sys.exit(1)
 
 # Configuração
 config_manager = ConfigManager()

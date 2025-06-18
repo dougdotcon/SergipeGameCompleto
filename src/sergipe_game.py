@@ -36,7 +36,7 @@ from menu_gui import show_menu
 from config_manager import ConfigManager
 
 # Import visual feedback and sync managers
-from visual_feedback import VisualFeedback
+from visual_feedback import get_visual_feedback_manager
 from sync_manager import get_sync_manager
 
 # Import performance optimizer and new systems
@@ -63,11 +63,31 @@ from sergipe_utils import (
 
 # Import additional modules
 try:
-    from . import get_asset_path, get_sound_path
-except ImportError:
-    # Fallback for direct imports if necessary
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from . import get_asset_path, get_sound_path
+    from sergipe_utils import load_sergipe_contour, create_body_mask
+    from utils import process_frame, initialize_pose_model
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from performance_optimizer import PerformanceOptimizer
+    from visual_feedback import get_visual_feedback_manager
+    from game_controller import GameController
+    import os
+    import sys
+    
+    # Adicionar raiz do projeto ao path para imports
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+        
+    # Funções para caminhos de assets
+    def get_asset_path(relative_path):
+        return os.path.join(project_root, relative_path)
+    
+    def get_sound_path(relative_path):
+        return os.path.join(project_root, relative_path)
+        
+except ImportError as e:
+    print(f"Erro de import: {e}")
+    sys.exit(1)
 
 ##################
 ### PARAMETERS ###
@@ -75,7 +95,7 @@ except ImportError:
 
 # Initialize managers
 config_manager = ConfigManager()
-visual_feedback = VisualFeedback()
+visual_feedback = get_visual_feedback_manager()
 sync_manager = get_sync_manager()
 performance_optimizer = PerformanceOptimizer()
 game_mode_manager = GameModeManager()
@@ -113,7 +133,6 @@ if not os.path.exists(SNAPSHOTS_DIR):
 def main():
     """Função principal - usa o novo sistema de controle"""
     try:
-        from game_controller import GameController
         controller = GameController()
         controller.start()
     except Exception as e:

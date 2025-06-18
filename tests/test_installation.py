@@ -14,7 +14,11 @@ import mediapipe as mp
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from sergipe_utils import load_sergipe_contour
-from . import get_asset_path
+
+def get_asset_path(relative_path):
+    """Função para obter caminho de assets"""
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(project_root, relative_path)
 
 def test_dependencies():
     """Testa se todas as dependências estão instaladas"""

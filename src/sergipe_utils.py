@@ -39,8 +39,9 @@ def load_sergipe_contour(contour_path=None):
     if contour_path is None:
         # Usar caminho padrão relativo à raiz do projeto
         try:
-            from . import get_asset_path
-            contour_path = get_asset_path("assets/sergipe_contour.npy")
+            import os
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            contour_path = os.path.join(project_root, "assets/sergipe_contour.npy")
         except ImportError:
             contour_path = "assets/sergipe_contour.npy"
     

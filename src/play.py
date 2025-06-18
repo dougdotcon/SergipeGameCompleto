@@ -15,26 +15,36 @@ from pathlib import Path
 
 # Importar módulos do projeto
 try:
-    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from sergipe_utils import load_sergipe_contour, create_body_mask
+    from utils import process_frame, initialize_pose_model
     from config_manager import ConfigManager
     from game_modes import GameModeManager
     from performance_optimizer import PerformanceOptimizer
-    from visual_feedback import VisualFeedback
-    from . import get_asset_path, get_sound_path
-except ImportError:
-    # Fallback para imports diretos se necessário
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
-    from config_manager import ConfigManager
-    from game_modes import GameModeManager
-    from performance_optimizer import PerformanceOptimizer
-    from visual_feedback import VisualFeedback
+    from visual_feedback import get_visual_feedback_manager
+    import os
+    import sys
+    
+    # Adicionar raiz do projeto ao path para imports
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+        
+    # Funções para caminhos de assets
+    def get_asset_path(relative_path):
+        return os.path.join(project_root, relative_path)
+    
+    def get_sound_path(relative_path):
+        return os.path.join(project_root, relative_path)
+        
+except ImportError as e:
+    print(f"Erro de import: {e}")
+    sys.exit(1)
 
 # Configuração do jogo
 config_manager = ConfigManager()
 game_mode_manager = GameModeManager()
 performance_optimizer = PerformanceOptimizer()
-visual_feedback = VisualFeedback()
+visual_feedback = get_visual_feedback_manager()
 
 # Carregar configurações
 GAME_SETTINGS = config_manager.get_game_settings()
@@ -124,8 +134,6 @@ from tensorflow.keras.models import load_model
 
 # Import custom utility functions
 from utils import (
-    initialize_pose_model,
-    process_frame,
     blink_screen,
     draw_bold_text,
     extract_landmarks,
