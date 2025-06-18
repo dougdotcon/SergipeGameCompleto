@@ -1,0 +1,48 @@
+{
+    "game": {
+        "duration": 300,
+        "win_threshold": 30.0,
+        "min_body_pixels": 1000,
+        "fullscreen": true,
+        "auto_save_photos": true
+    },
+    "audio": {
+        "master_volume": 0.7,
+        "music_volume": 0.5,
+        "effects_volume": 0.8,
+        "voice_volume": 0.9,
+        "mute_all": false
+    },
+    "visual": {
+        "contour_color": [
+            0,
+            255,
+            0
+        ],
+        "contour_thickness": 3,
+        "show_percentage": true,
+        "show_timer": true,
+        "show_progress_bar": true,
+        "camera_mirror": true
+    },
+    "camera": {
+        "device_id": 0,
+        "resolution_width": 1280,
+        "resolution_height": 720,
+        "fps": 30
+    },
+    "interface": {
+        "language": "pt-BR",
+        "theme": "sergipe",
+        "font_size": 1.0,
+        "show_help_on_start": true
+    },
+    "stats": {
+        "games_played": 0,
+        "games_won": 0,
+        "best_percentage": 0.0,
+        "best_time": 0.0,
+        "total_playtime": 0.0,
+        "photos_saved": 0
+    }
+}

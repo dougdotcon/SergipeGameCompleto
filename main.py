@@ -13,8 +13,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 def main():
     """Função principal que inicia o jogo"""
     try:
+        # Mudar para o diretório src antes de executar
+        src_dir = os.path.join(os.path.dirname(__file__), 'src')
+        original_dir = os.getcwd()
+        os.chdir(src_dir)
+        
         from start_game import main as start_game_main
         start_game_main()
+        
+        # Voltar para o diretório original
+        os.chdir(original_dir)
+        
     except ImportError as e:
         print(f"Erro ao importar módulos: {e}")
         print("Certifique-se de que todas as dependências estão instaladas.")

@@ -17,14 +17,14 @@ def setup_environment():
     os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
     print("✅ Variável PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION definida")
     
-    # Verificar se estamos no diretório correto
+    # Verificar se estamos no diretório correto (agora na pasta src)
     current_dir = Path.cwd()
     game_file = current_dir / "sergipe_game.py"
     
     if not game_file.exists():
         print("❌ Arquivo sergipe_game.py não encontrado!")
         print(f"📁 Diretório atual: {current_dir}")
-        print("💡 Certifique-se de executar este script no diretório do jogo")
+        print("💡 Certifique-se de executar este script no diretório correto")
         return False
     
     print(f"✅ Jogo encontrado em: {game_file}")
