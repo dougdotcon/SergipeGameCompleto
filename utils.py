@@ -8,12 +8,16 @@ and 2) to play the body pose game (play.py)
 ##############
 
 import cv2  # OpenCV for video capture and processing
-import os  # Operating system-related functions, e.g. directory and path operations
-import time  # Time-related function
 import numpy as np  # NumPy for numerical computations
+import mediapipe as mp  # MediaPipe for pose landmark detection
+import time  # Time-related function
+import os  # Operating system-related functions, e.g. directory and path operations
+import pygame  # Pygame for game-related functionalities
+from typing import Tuple, List, Dict, Any, Optional
 
-# Importing modules from mediapipe.solutions (for pose landmark detection)
-import mediapipe as mp
+# Compatibilidade com versões antigas do OpenCV
+if not hasattr(cv2, 'LINE_AA'):
+    cv2.LINE_AA = cv2.LINE_8  # Usar LINE_8 como fallback
 
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
