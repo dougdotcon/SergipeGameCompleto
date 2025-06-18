@@ -9,6 +9,9 @@ opencv-python>=4.5.0,<5.0.0
 # Detecção corporal e pose estimation
 mediapipe>=0.8.0,<1.0.0
 
+# Protobuf (versão específica para compatibilidade com MediaPipe)
+protobuf==3.20.3
+
 # Interface gráfica
 PyQt5>=5.15.0,<6.0.0
 

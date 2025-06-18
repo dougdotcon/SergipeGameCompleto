@@ -86,33 +86,54 @@ def fix_opencv():
         print(f"❌ Erro importando OpenCV: {e}")
         return False
 
+def fix_protobuf_issue():
+    """Corrige problema do protobuf com MediaPipe"""
+    print()
+    print("4. Corrigindo problema do protobuf...")
+
+    # Downgrade protobuf para versão compatível
+    success = run_command("pip install protobuf==3.20.3")
+    if success:
+        print("✅ Protobuf corrigido para versão compatível")
+    else:
+        print("⚠️ Erro ao corrigir protobuf - tentando alternativa")
+        # Definir variável de ambiente como alternativa
+        os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+        print("✅ Variável de ambiente PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION definida")
+
+    return True
+
 def install_all_requirements():
     """Instala todas as dependências"""
     print()
-    print("4. Instalando outras dependências...")
-    
+    print("5. Instalando outras dependências...")
+
     requirements = [
         "mediapipe",
-        "numpy", 
+        "numpy",
         "pygame",
         "PyQt5"
     ]
-    
+
     for req in requirements:
         run_command(f"pip install {req}")
 
 if __name__ == "__main__":
     print("🎮 VIVA SERGIPE! - Correção de Dependências")
     print("=" * 50)
-    
+
     if fix_opencv():
         print()
         print("✅ OpenCV corrigido com sucesso!")
+        fix_protobuf_issue()
         install_all_requirements()
         print()
         print("🎉 Todas as dependências instaladas!")
         print()
-        print("Agora você pode executar:")
+        print("Para executar o jogo:")
+        print("set PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python && python sergipe_game.py")
+        print()
+        print("Ou simplesmente:")
         print("python sergipe_game.py")
     else:
         print()

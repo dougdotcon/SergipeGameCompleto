@@ -24,6 +24,7 @@ class VivaSergiperInstaller:
         self.install_dir = Path.home() / "VIVA_SERGIPE"
         self.requirements = [
             "opencv-python>=4.5.0",
+            "protobuf==3.20.3",  # Versão específica para compatibilidade
             "mediapipe>=0.8.0",
             "pygame>=2.0.0",
             "PyQt5>=5.15.0",
@@ -124,7 +125,10 @@ class VivaSergiperInstaller:
             "achievements.py",
             "sergipe_utils.py",
             "utils.py",
-            "fix_opencv.py"
+            "fix_opencv.py",
+            "start_game.py",
+            "VIVA_SERGIPE.bat",
+            "requirements.txt"
         ]
         
         # Copiar arquivos principais
