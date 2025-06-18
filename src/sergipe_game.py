@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ######################
 ### VIVA SERGIPE! ###
 ######################
@@ -26,20 +27,21 @@ import sys  # System-specific parameters and functions
 import os  # Operating system-related functions
 import pygame  # Import pygame for audio processing
 from datetime import datetime
+from pathlib import Path
 
 # Import PyQt menu
 from menu_gui import show_menu
 
 # Import configuration manager
-from config_manager import get_config_manager
+from config_manager import ConfigManager
 
 # Import visual feedback and sync managers
-from visual_feedback import get_visual_feedback_manager
+from visual_feedback import VisualFeedback
 from sync_manager import get_sync_manager
 
 # Import performance optimizer and new systems
-from performance_optimizer import get_performance_optimizer
-from game_modes import get_game_mode_manager
+from performance_optimizer import PerformanceOptimizer
+from game_modes import GameModeManager
 from achievements import get_achievement_manager
 
 # Import custom utility functions
@@ -59,16 +61,24 @@ from sergipe_utils import (
     display_game_over_message,
 )
 
+# Import additional modules
+try:
+    from . import get_asset_path, get_sound_path
+except ImportError:
+    # Fallback for direct imports if necessary
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from . import get_asset_path, get_sound_path
+
 ##################
 ### PARAMETERS ###
 ##################
 
 # Initialize managers
-config_manager = get_config_manager()
-visual_feedback = get_visual_feedback_manager()
+config_manager = ConfigManager()
+visual_feedback = VisualFeedback()
 sync_manager = get_sync_manager()
-performance_optimizer = get_performance_optimizer()
-game_mode_manager = get_game_mode_manager()
+performance_optimizer = PerformanceOptimizer()
+game_mode_manager = GameModeManager()
 achievement_manager = get_achievement_manager()
 
 # Load game settings from configuration (with mode support)
@@ -84,7 +94,7 @@ if current_mode != 'classic':
 else:
     GAME_SETTINGS = config_manager.get_game_settings()
 
-CONTOUR_PATH = "assets/contorno-mapa-SE.png"
+CONTOUR_PATH = get_asset_path("assets/contorno-mapa-SE.png")
 SNAPSHOTS_DIR = "snapshots"
 
 # Game states
@@ -178,14 +188,14 @@ def start_game():
 
     # Load sounds (using existing STRIKE A POSE sounds)
     try:
-        press_space_sound = pygame.mixer.Sound("./sounds/confirmation.mp3")
-        countdown_sound = pygame.mixer.Sound("./sounds/countdown.mp3")
-        victory_sound = pygame.mixer.Sound("./sounds/game_over_100.mp3")
-        game_over_sound = pygame.mixer.Sound("./sounds/game_over_50.mp3")
-        bye_sound = pygame.mixer.Sound("./sounds/bye.mp3")
+        press_space_sound = pygame.mixer.Sound(get_sound_path("sounds/confirmation.mp3"))
+        countdown_sound = pygame.mixer.Sound(get_sound_path("sounds/countdown.mp3"))
+        victory_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_100.mp3"))
+        game_over_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_50.mp3"))
+        bye_sound = pygame.mixer.Sound(get_sound_path("sounds/bye.mp3"))
 
         # Load background music
-        pygame.mixer.music.load("./sounds/background.mp3")
+        pygame.mixer.music.load(get_sound_path("sounds/background.mp3"))
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(-1)  # Loop background music
 

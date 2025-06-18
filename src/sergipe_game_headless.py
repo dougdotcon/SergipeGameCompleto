@@ -1,25 +1,55 @@
+#!/usr/bin/env python3
 """
 VIVA SERGIPE! - Versão Headless
-Jogo que pode ser controlado externamente via queue
+Jogo sem interface gráfica para testes e automação
 """
 
 import cv2
-import time
+import mediapipe as mp
 import numpy as np
 import pygame
-import queue
-from sergipe_utils import *
-from utils import initialize_pose_model, process_frame
+import time
+import os
+import sys
+from pathlib import Path
 
-# Game settings
-GAME_SETTINGS = {
-    'duration': 300,  # 5 minutes in seconds
-    'win_threshold': 30,  # 30% fill to win
-    'min_body_pixels': 1000  # Minimum pixels to consider body detection
-}
+# Importar módulos do projeto
+try:
+    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from performance_optimizer import PerformanceOptimizer
+    from . import get_asset_path, get_sound_path
+except ImportError:
+    # Fallback para imports diretos se necessário
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from performance_optimizer import PerformanceOptimizer
 
-CONTOUR_PATH = "assets/contorno-mapa-SE.png"
+# Configuração
+config_manager = ConfigManager()
+game_mode_manager = GameModeManager()
+performance_optimizer = PerformanceOptimizer()
+
+# Carregar configurações
+GAME_SETTINGS = config_manager.get_game_settings()
+
+# Caminhos dos arquivos
+CONTOUR_PATH = get_asset_path("assets/contorno-mapa-SE.png")
 SNAPSHOTS_DIR = "snapshots"
+
+def load_audio():
+    """Carrega os arquivos de áudio"""
+    try:
+        pygame.mixer.init()
+        victory_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_100.mp3"))
+        game_over_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_50.mp3"))
+        return victory_sound, game_over_sound
+    except Exception as e:
+        print(f"Aviso: Não foi possível carregar os arquivos de áudio: {e}")
+        return None, None
 
 def run_game_headless(command_queue, result_queue):
     """
@@ -47,12 +77,7 @@ def run_game_headless(command_queue, result_queue):
     pygame.mixer.init()
 
     # Load sounds
-    try:
-        victory_sound = pygame.mixer.Sound("./sounds/game_over_100.mp3")
-        game_over_sound = pygame.mixer.Sound("./sounds/game_over_50.mp3")
-    except:
-        victory_sound = None
-        game_over_sound = None
+    victory_sound, game_over_sound = load_audio()
 
     # Game state
     game_visible = False

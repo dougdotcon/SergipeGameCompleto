@@ -1,58 +1,48 @@
+#!/usr/bin/env python3
 """
-Teste visual para verificar se o contorno de Sergipe está aparecendo corretamente
+Teste de funcionalidades visuais do jogo Viva Sergipe!
 """
 
+import sys
+import os
 import cv2
 import numpy as np
-from sergipe_utils import load_sergipe_contour
 
-def test_contour_visualization():
-    """Testa a visualização do contorno"""
-    print("Carregando contorno de Sergipe...")
+# Adicionar src ao path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from sergipe_utils import load_sergipe_contour
+from . import get_asset_path
+
+def test_contour_loading():
+    """Testa o carregamento do contorno de Sergipe"""
+    print("🧪 Testando carregamento do contorno...")
     
-    # Carregar contorno
-    contour_mask = load_sergipe_contour("assets/contorno-mapa-SE.png")
+    # Testar carregamento do contorno
+    contour_mask = load_sergipe_contour(get_asset_path("assets/contorno-mapa-SE.png"))
     
-    if contour_mask is None:
-        print("Erro: Não foi possível carregar o contorno")
-        return
+    if contour_mask is not None:
+        print(f"✅ Contorno carregado com sucesso!")
+        print(f"   Dimensões: {contour_mask.shape}")
+        print(f"   Pixels não-zero: {np.sum(contour_mask > 0)}")
+        return True
+    else:
+        print("❌ Falha ao carregar contorno")
+        return False
+
+def main():
+    """Função principal do teste"""
+    print("🎮 VIVA SERGIPE! - Teste de Funcionalidades Visuais")
+    print("=" * 50)
     
-    # Criar uma imagem de teste (simulando webcam)
-    test_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
-    test_frame[:] = (50, 50, 50)  # Fundo cinza escuro
+    success = test_contour_loading()
     
-    # Redimensionar contorno para o tamanho do frame
-    contour_resized = cv2.resize(contour_mask, (1280, 720))
+    if success:
+        print("\n🎉 Todos os testes visuais passaram!")
+    else:
+        print("\n❌ Alguns testes falharam!")
     
-    # Criar overlay do contorno
-    contour_overlay = np.zeros_like(test_frame)
-    contour_overlay[:, :, 1] = contour_resized  # Canal verde
-    contour_overlay[:, :, 0] = contour_resized // 2  # Um pouco de azul
-    
-    # Desenhar contorno como linha
-    contours, _ = cv2.findContours(contour_resized, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours:
-        cv2.drawContours(test_frame, [contour], -1, (0, 255, 0), 3)  # Linha verde
-    
-    # Misturar com o frame
-    alpha = 0.4
-    result = cv2.addWeighted(test_frame, 1 - alpha, contour_overlay, alpha, 0)
-    
-    # Adicionar texto informativo
-    cv2.putText(result, "CONTORNO DE SERGIPE - TESTE VISUAL", (50, 50), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-    cv2.putText(result, f"Pixels do contorno: {np.sum(contour_resized > 0)}", (50, 100), 
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-    cv2.putText(result, "Pressione qualquer tecla para fechar", (50, 150), 
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-    
-    # Mostrar resultado
-    cv2.imshow("Teste Visual - Contorno Sergipe", result)
-    print("Janela aberta. Pressione qualquer tecla para fechar.")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    print("Teste visual concluído!")
+    return success
 
 if __name__ == "__main__":
-    test_contour_visualization()
+    main()

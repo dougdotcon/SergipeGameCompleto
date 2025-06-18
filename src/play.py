@@ -1,3 +1,89 @@
+#!/usr/bin/env python3
+"""
+Módulo de jogo principal para Viva Sergipe!
+Contém a lógica principal do jogo
+"""
+
+import cv2
+import mediapipe as mp
+import numpy as np
+import pygame
+import time
+import os
+import sys
+from pathlib import Path
+
+# Importar módulos do projeto
+try:
+    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from performance_optimizer import PerformanceOptimizer
+    from visual_feedback import VisualFeedback
+    from . import get_asset_path, get_sound_path
+except ImportError:
+    # Fallback para imports diretos se necessário
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from sergipe_utils import load_sergipe_contour, create_body_mask, process_frame, initialize_pose_model
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from performance_optimizer import PerformanceOptimizer
+    from visual_feedback import VisualFeedback
+
+# Configuração do jogo
+config_manager = ConfigManager()
+game_mode_manager = GameModeManager()
+performance_optimizer = PerformanceOptimizer()
+visual_feedback = VisualFeedback()
+
+# Carregar configurações
+GAME_SETTINGS = config_manager.get_game_settings()
+
+# Definir poses disponíveis
+POSES = ['Stand', 'Squat', 'X', 'Run', 'Pose', 'Hide']
+
+def load_game_audio():
+    """Carrega todos os arquivos de áudio do jogo"""
+    try:
+        pygame.mixer.init()
+        
+        # Música de fundo
+        pygame.mixer.music.load(get_sound_path("sounds/background.mp3"))
+        pygame.mixer.music.set_volume(0.1)
+        
+        # Sons de interface
+        press_space_sound = pygame.mixer.Sound(get_sound_path("sounds/confirmation.mp3"))
+        countdown_sound = pygame.mixer.Sound(get_sound_path("sounds/countdown.mp3"))
+        
+        # Sons de fim de jogo
+        GO_all_points_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_100.mp3"))
+        GO_half_points_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_51_99.mp3"))
+        GO_few_points_sound = pygame.mixer.Sound(get_sound_path("sounds/game_over_50.mp3"))
+        
+        # Sons de feedback
+        correct_sound = pygame.mixer.Sound(get_sound_path("sounds/point.mp3"))
+        false_sound = pygame.mixer.Sound(get_sound_path("sounds/no_point.mp3"))
+        bye_sound = pygame.mixer.Sound(get_sound_path("sounds/bye.mp3"))
+        
+        # Sons de poses
+        pose_sounds = {pose: pygame.mixer.Sound(get_sound_path(f"sounds/{pose}.mp3")) for pose in POSES}
+        
+        return {
+            'press_space': press_space_sound,
+            'countdown': countdown_sound,
+            'game_over_100': GO_all_points_sound,
+            'game_over_51_99': GO_half_points_sound,
+            'game_over_50': GO_few_points_sound,
+            'correct': correct_sound,
+            'false': false_sound,
+            'bye': bye_sound,
+            'poses': pose_sounds
+        }
+        
+    except Exception as e:
+        print(f"Aviso: Não foi possível carregar os arquivos de áudio: {e}")
+        return None
+
 ######################
 ### STRIKE A POSE! ###
 ######################

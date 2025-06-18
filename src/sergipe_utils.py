@@ -26,43 +26,52 @@ from utils import draw_bold_text
 ### FUNCTIONS ###
 ##################
 
-def load_sergipe_contour(contour_path="assets/sergipe_contour.npy"):
+def load_sergipe_contour(contour_path=None):
     """
-    Loads the Sergipe map contour from image file and converts to binary mask.
-
+    Carrega o contorno de Sergipe para detecção de preenchimento
+    
     Args:
-        contour_path (str): Path to the contour image file
-
+        contour_path (str): Caminho para o arquivo de contorno
+        
     Returns:
-        numpy.ndarray: Binary mask of the contour (255 for contour, 0 for background)
-        None if file cannot be loaded
+        numpy.ndarray: Máscara do contorno ou None se não conseguir carregar
     """
+    if contour_path is None:
+        # Usar caminho padrão relativo à raiz do projeto
+        try:
+            from . import get_asset_path
+            contour_path = get_asset_path("assets/sergipe_contour.npy")
+        except ImportError:
+            contour_path = "assets/sergipe_contour.npy"
+    
     try:
-        # Load image
-        contour_img = cv2.imread(contour_path, cv2.IMREAD_GRAYSCALE)
-
-        if contour_img is None:
-            print(f"Error: Could not load contour image from {contour_path}")
-            return None
-
-        print(f"Contour image loaded: {contour_img.shape}, values: {np.min(contour_img)}-{np.max(contour_img)}")
-
-        # The image has very low values, so we need a different approach
-        # Find any non-zero pixels and make them white
-        binary_mask = np.zeros_like(contour_img)
-        binary_mask[contour_img > 0] = 255
-
-        # If still no contour found, try a very low threshold
-        if np.sum(binary_mask) == 0:
-            _, binary_mask = cv2.threshold(contour_img, 1, 255, cv2.THRESH_BINARY)
-
-        print(f"Binary mask created: {np.sum(binary_mask > 0)} white pixels")
-
-        return binary_mask
-
+        # Tentar carregar arquivo .npy primeiro (mais rápido)
+        if contour_path.endswith('.npy'):
+            contour_mask = np.load(contour_path)
+            print(f"✅ Contorno carregado de: {contour_path}")
+            return contour_mask
+        
+        # Se não for .npy, tentar carregar imagem PNG
+        if contour_path.endswith('.png'):
+            # Carregar imagem
+            contour_img = cv2.imread(contour_path, cv2.IMREAD_GRAYSCALE)
+            if contour_img is None:
+                print(f"❌ Erro: Não foi possível carregar a imagem de contorno de: {contour_path}")
+                return None
+            
+            # Converter para máscara binária
+            _, contour_mask = cv2.threshold(contour_img, 127, 255, cv2.THRESH_BINARY)
+            contour_mask = contour_mask // 255  # Normalizar para 0-1
+            
+            print(f"✅ Contorno carregado de: {contour_path}")
+            return contour_mask
+            
     except Exception as e:
-        print(f"Error loading contour: {e}")
+        print(f"❌ Erro ao carregar contorno de {contour_path}: {e}")
         return None
+    
+    print(f"❌ Formato de arquivo não suportado: {contour_path}")
+    return None
 
 
 def create_body_mask(results, frame_width, frame_height):

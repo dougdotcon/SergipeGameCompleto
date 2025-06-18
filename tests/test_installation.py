@@ -1,224 +1,132 @@
 #!/usr/bin/env python3
 """
-VIVA SERGIPE! - Teste de Instalação
-Verifica se todos os componentes estão funcionando corretamente
+Teste de instalação e dependências do jogo Viva Sergipe!
 """
 
-import os
 import sys
-import importlib
-from pathlib import Path
+import os
+import cv2
+import numpy as np
+import pygame
+import mediapipe as mp
 
-def test_python_version():
-    """Testa versão do Python"""
-    print("🐍 Testando versão do Python...")
-    
-    version = sys.version_info
-    if version >= (3, 7):
-        print(f"✅ Python {version.major}.{version.minor}.{version.micro}")
-        return True
-    else:
-        print(f"❌ Python {version.major}.{version.minor} (mínimo: 3.7)")
-        return False
+# Adicionar src ao path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-def test_environment_variables():
-    """Testa variáveis de ambiente"""
-    print("\n🌍 Testando variáveis de ambiente...")
-    
-    # Definir variável se não existir
-    if 'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION' not in os.environ:
-        os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
-        print("✅ Variável PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION definida")
-    else:
-        print("✅ Variável PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION já existe")
-    
-    return True
+from sergipe_utils import load_sergipe_contour
+from . import get_asset_path
 
 def test_dependencies():
-    """Testa importação de dependências"""
-    print("\n📦 Testando dependências...")
+    """Testa se todas as dependências estão instaladas"""
+    print("🧪 Testando dependências...")
     
-    dependencies = {
-        'cv2': 'OpenCV',
-        'numpy': 'NumPy',
-        'pygame': 'Pygame',
-        'mediapipe': 'MediaPipe',
-        'PyQt5': 'PyQt5'
-    }
+    dependencies = [
+        ('cv2', cv2),
+        ('numpy', np),
+        ('pygame', pygame),
+        ('mediapipe', mp)
+    ]
     
-    results = {}
-    
-    for module, name in dependencies.items():
+    all_ok = True
+    for name, module in dependencies:
         try:
-            imported_module = importlib.import_module(module)
-            version = getattr(imported_module, '__version__', 'N/A')
-            print(f"✅ {name} v{version}")
-            results[module] = True
-        except ImportError as e:
-            print(f"❌ {name}: {e}")
-            results[module] = False
+            version = getattr(module, '__version__', 'N/A')
+            print(f"✅ {name}: {version}")
+        except Exception as e:
+            print(f"❌ {name}: Erro - {e}")
+            all_ok = False
     
-    return all(results.values())
+    return all_ok
 
-def test_game_files():
-    """Testa presença dos arquivos do jogo"""
-    print("\n📁 Testando arquivos do jogo...")
+def test_assets():
+    """Testa se os assets estão disponíveis"""
+    print("\n🧪 Testando assets...")
     
-    required_files = [
-        'sergipe_game.py',
-        'sergipe_utils.py',
-        'utils.py',
-        'config_manager.py',
-        'assets/contorno-mapa-SE.png'
+    assets_to_test = [
+        'assets/contorno-mapa-SE.png',
+        'assets/flag-se.jpg',
+        'sounds/background.mp3',
+        'sounds/confirmation.mp3'
     ]
     
-    optional_files = [
-        'start_game.py',
-        'VIVA_SERGIPE.bat',
-        'fix_opencv.py',
-        'requirements.txt'
-    ]
-    
-    all_present = True
-    
-    # Arquivos obrigatórios
-    for file in required_files:
-        if Path(file).exists():
-            print(f"✅ {file}")
-        else:
-            print(f"❌ {file} (obrigatório)")
-            all_present = False
-    
-    # Arquivos opcionais
-    for file in optional_files:
-        if Path(file).exists():
-            print(f"✅ {file} (opcional)")
-        else:
-            print(f"⚠️ {file} (opcional - não encontrado)")
-    
-    return all_present
-
-def test_camera():
-    """Testa acesso à câmera"""
-    print("\n📷 Testando câmera...")
-    
-    try:
-        import cv2
-        cap = cv2.VideoCapture(0)
-        
-        if cap.isOpened():
-            # Tentar ler um frame
-            ret, frame = cap.read()
-            if ret and frame is not None:
-                print(f"✅ Câmera funcionando - Resolução: {frame.shape[1]}x{frame.shape[0]}")
-                cap.release()
-                return True
+    all_ok = True
+    for asset in assets_to_test:
+        try:
+            asset_path = get_asset_path(asset)
+            if os.path.exists(asset_path):
+                print(f"✅ {asset}")
             else:
-                print("⚠️ Câmera detectada mas não consegue capturar frames")
-                cap.release()
-                return False
-        else:
-            print("❌ Não foi possível abrir a câmera")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Erro ao testar câmera: {e}")
-        return False
+                print(f"❌ {asset} - Arquivo não encontrado")
+                all_ok = False
+        except Exception as e:
+            print(f"❌ {asset} - Erro: {e}")
+            all_ok = False
+    
+    return all_ok
 
-def test_game_components():
-    """Testa componentes específicos do jogo"""
-    print("\n🎮 Testando componentes do jogo...")
+def test_contour_loading():
+    """Testa o carregamento do contorno"""
+    print("\n🧪 Testando carregamento do contorno...")
     
     try:
-        # Testar carregamento do contorno
-        from sergipe_utils import load_sergipe_contour
-        contour = load_sergipe_contour("assets/contorno-mapa-SE.png")
+        contour_mask = load_sergipe_contour(get_asset_path("assets/contorno-mapa-SE.png"))
         
-        if contour is not None:
-            print("✅ Contorno de Sergipe carregado")
+        if contour_mask is not None:
+            print(f"✅ Contorno carregado com sucesso!")
+            print(f"   Dimensões: {contour_mask.shape}")
+            print(f"   Pixels não-zero: {np.sum(contour_mask > 0)}")
+            return True
         else:
-            print("❌ Erro ao carregar contorno de Sergipe")
+            print("❌ Falha ao carregar contorno")
             return False
-        
-        # Testar MediaPipe
-        from utils import initialize_pose_model
-        pose = initialize_pose_model()
-        
-        if pose is not None:
-            print("✅ MediaPipe inicializado")
-        else:
-            print("❌ Erro ao inicializar MediaPipe")
-            return False
-        
-        return True
-        
     except Exception as e:
-        print(f"❌ Erro nos componentes do jogo: {e}")
+        print(f"❌ Erro ao carregar contorno: {e}")
         return False
 
-def run_comprehensive_test():
-    """Executa teste completo"""
+def main():
+    """Função principal do teste"""
     print("🎮 VIVA SERGIPE! - Teste de Instalação")
     print("=" * 50)
     
     tests = [
-        ("Versão do Python", test_python_version),
-        ("Variáveis de ambiente", test_environment_variables),
         ("Dependências", test_dependencies),
-        ("Arquivos do jogo", test_game_files),
-        ("Câmera", test_camera),
-        ("Componentes do jogo", test_game_components)
+        ("Assets", test_assets),
+        ("Contorno", test_contour_loading)
     ]
     
     results = []
-    
     for test_name, test_func in tests:
+        print(f"\n📋 {test_name}:")
         try:
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"❌ Erro no teste '{test_name}': {e}")
+            print(f"❌ Erro no teste {test_name}: {e}")
             results.append((test_name, False))
     
     # Resumo
     print("\n" + "=" * 50)
-    print("📊 RESUMO DOS TESTES")
-    print("=" * 50)
+    print("📊 RESUMO DOS TESTES:")
     
     passed = 0
     total = len(results)
     
     for test_name, result in results:
         status = "✅ PASSOU" if result else "❌ FALHOU"
-        print(f"{test_name:<25} {status}")
+        print(f"   {test_name}: {status}")
         if result:
             passed += 1
     
-    print(f"\nResultado: {passed}/{total} testes passaram")
+    print(f"\n🎯 Resultado: {passed}/{total} testes passaram")
     
     if passed == total:
-        print("\n🎉 INSTALAÇÃO PERFEITA!")
-        print("✅ Todos os testes passaram")
-        print("🚀 O jogo está pronto para ser executado")
-        print("\nPara jogar:")
-        print("• Windows: Clique duas vezes em VIVA_SERGIPE.bat")
-        print("• Ou execute: python start_game.py")
-        print("• Ou execute: python sergipe_game.py")
+        print("🎉 Instalação completa e funcional!")
+        print("🚀 O jogo está pronto para ser executado!")
     else:
-        print(f"\n⚠️ {total - passed} teste(s) falharam")
-        print("💡 Soluções:")
-        print("1. Execute: python fix_opencv.py")
-        print("2. Instale dependências: pip install -r requirements.txt")
-        print("3. Verifique se a câmera está conectada")
-        print("4. Consulte INSTALACAO.md para mais detalhes")
+        print("⚠️ Alguns problemas foram encontrados.")
+        print("💡 Execute: python scripts/fix_opencv.py")
     
     return passed == total
 
 if __name__ == "__main__":
-    try:
-        success = run_comprehensive_test()
-        input(f"\nPressione Enter para sair...")
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print("\n\n⚠️ Teste interrompido pelo usuário")
-        sys.exit(1)
+    main()

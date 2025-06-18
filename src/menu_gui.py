@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 MENU GUI PARA VIVA SERGIPE!
 Interface gráfica usando PyQt5 com background da bandeira de Sergipe
@@ -5,13 +6,193 @@ Interface gráfica usando PyQt5 com background da bandeira de Sergipe
 
 import sys
 import os
+import pygame
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QFrame, QSpacerItem,
-                             QSizePolicy, QMessageBox, QDialog, QScrollArea)
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer
+                             QSizePolicy, QMessageBox, QDialog, QScrollArea, QSlider,
+                             QCheckBox, QComboBox, QSpinBox, QGroupBox, QGridLayout, QTabWidget)
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QThread, QPropertyAnimation, QEasingCurve
 from PyQt5.QtGui import QPixmap, QPalette, QBrush, QFont, QPainter, QColor, QIcon
-import pygame
+import cv2
+import numpy as np
+from pathlib import Path
 
+# Importar módulos do projeto
+try:
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+    from . import get_asset_path, get_sound_path
+except ImportError:
+    # Fallback para imports diretos se necessário
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from config_manager import ConfigManager
+    from game_modes import GameModeManager
+
+# Configuração do estilo
+STYLE_SHEET = """
+QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #1e3c72, stop:1 #2a5298);
+    color: white;
+}
+
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #4CAF50, stop:1 #45a049);
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+    min-height: 40px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #45a049, stop:1 #4CAF50);
+    border: 2px solid #45a049;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #3d8b40, stop:1 #4CAF50);
+}
+
+QPushButton:disabled {
+    background: #cccccc;
+    border: 2px solid #cccccc;
+    color: #666666;
+}
+
+QLabel {
+    color: white;
+    font-size: 14px;
+}
+
+QLabel[class="title"] {
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFD700;
+}
+
+QLabel[class="subtitle"] {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFA500;
+}
+
+QGroupBox {
+    font-weight: bold;
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    margin-top: 10px;
+    padding-top: 10px;
+    color: white;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+    color: #FFD700;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 8px;
+    background: #333333;
+    border-radius: 4px;
+}
+
+QSlider::handle:horizontal {
+    background: #4CAF50;
+    border: 1px solid #5c6bc0;
+    width: 18px;
+    margin: -2px 0;
+    border-radius: 9px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #45a049;
+}
+
+QComboBox {
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    padding: 5px;
+    background: #333333;
+    color: white;
+    min-height: 30px;
+}
+
+QComboBox::drop-down {
+    border: none;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #4CAF50;
+    margin-right: 10px;
+}
+
+QSpinBox {
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    padding: 5px;
+    background: #333333;
+    color: white;
+    min-height: 30px;
+}
+
+QCheckBox {
+    color: white;
+    font-size: 14px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+QCheckBox::indicator:unchecked {
+    border: 2px solid #4CAF50;
+    background: #333333;
+    border-radius: 3px;
+}
+
+QCheckBox::indicator:checked {
+    border: 2px solid #4CAF50;
+    background: #4CAF50;
+    border-radius: 3px;
+}
+
+QTabWidget::pane {
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    background: rgba(51, 51, 51, 0.9);
+}
+
+QTabBar::tab {
+    background: #333333;
+    color: white;
+    padding: 10px 20px;
+    margin-right: 2px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+QTabBar::tab:selected {
+    background: #4CAF50;
+    color: white;
+}
+
+QTabBar::tab:hover {
+    background: #45a049;
+}
+"""
 
 class HelpWindow(QDialog):
     """
@@ -133,6 +314,8 @@ class SergipeMenuWindow(QMainWindow):
         super().__init__()
         self.current_button = 0  # Índice do botão selecionado
         self.buttons = []  # Lista de botões para navegação
+        self.config_manager = ConfigManager()
+        self.game_mode_manager = GameModeManager()
         self.init_ui()
         self.init_audio()
 
@@ -141,11 +324,11 @@ class SergipeMenuWindow(QMainWindow):
         try:
             pygame.mixer.init()
             # Carrega sons do menu
-            self.click_sound = pygame.mixer.Sound("./sounds/confirmation.mp3")
-            self.bye_sound = pygame.mixer.Sound("./sounds/bye.mp3")
+            self.click_sound = pygame.mixer.Sound(get_sound_path("sounds/confirmation.mp3"))
+            self.bye_sound = pygame.mixer.Sound(get_sound_path("sounds/bye.mp3"))
 
             # Música de fundo
-            pygame.mixer.music.load("./sounds/background.mp3")
+            pygame.mixer.music.load(get_sound_path("sounds/background.mp3"))
             pygame.mixer.music.set_volume(0.3)
             pygame.mixer.music.play(-1)  # Loop infinito
 
@@ -193,7 +376,7 @@ class SergipeMenuWindow(QMainWindow):
         """Define a bandeira de Sergipe como background"""
         try:
             # Carrega a imagem da bandeira
-            pixmap = QPixmap("assets/flag-se.jpg")
+            pixmap = QPixmap(get_asset_path("flag-se.jpg"))
 
             if not pixmap.isNull():
                 # Redimensiona para cobrir toda a janela
@@ -572,8 +755,8 @@ class PostGameMenuWindow(QMainWindow):
         """Inicializa o sistema de áudio"""
         try:
             pygame.mixer.init()
-            self.click_sound = pygame.mixer.Sound("./sounds/confirmation.mp3")
-            self.bye_sound = pygame.mixer.Sound("./sounds/bye.mp3")
+            self.click_sound = pygame.mixer.Sound(get_sound_path("sounds/confirmation.mp3"))
+            self.bye_sound = pygame.mixer.Sound(get_sound_path("sounds/bye.mp3"))
         except Exception as e:
             print(f"Aviso: Não foi possível carregar os arquivos de áudio: {e}")
             self.click_sound = None
@@ -617,7 +800,7 @@ class PostGameMenuWindow(QMainWindow):
     def set_sergipe_flag_background(self):
         """Define a bandeira de Sergipe como background"""
         try:
-            pixmap = QPixmap("assets/flag-se.jpg")
+            pixmap = QPixmap(get_asset_path("flag-se.jpg"))
             if not pixmap.isNull():
                 scaled_pixmap = pixmap.scaled(self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
                 palette = QPalette()
